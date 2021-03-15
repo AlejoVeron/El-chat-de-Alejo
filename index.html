@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.2.7/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-auth.js"></script>
+
+
+    <style media="screen">
+      #message{
+        display: flex;
+        flex-flow: column wrap;
+        justify-content: center;
+        align-items: center;
+      }
+      .nombre{
+        margin-top: 10px;
+      }
+      .foto{
+        width: 150px;
+        border-radius: 50%;
+      }
+      .mensajes{
+        list-style-type: none;
+        text-align: left;
+        height: 200px;
+        overflow: auto;
+      }
+      .btnMsj{
+        width: 75px;
+        padding: 5px;
+        border-radius: 5%;
+        border: none;
+        background-color: #039be5;
+        color: black;
+      }
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <img src="https://rotulosmatesanz.com/wp-content/uploads/2017/09/2000px-Google_G_Logo.svg_.png" alt="fotoPerfil" id="pic" class="foto" >
+      <h2 class="nombre" id='nombre'>Bienvenidos</h2>
+      <p id="email">Registrate para probar el Alejo's Chat</p>
+      <a id='btn' href="">Login</a>
+      <a id='btnOut' class="off" href="" style="display:none">logout</a>
+      <div class="box" id="chat" style="display: none;">
+        <ul class="mensajes" id="mensajes">
+        </ul>
+        <input type="text" id="send" placeholder="Envía tu mensaje">
+        <button id="pushMensaje" class="btnMsj">Enviar</button>
+      </div>
+    </div>
+
+    
+
+    <script>
+      
+      const config = {
+        apiKey: "AIzaSyC53tZBmbwtLywivfalXgVresTF83e4wSk",
+        authDomain: "elchatdealejo.firebaseapp.com",
+        databaseURL: "https://elchatdealejo-default-rtdb.firebaseio.com",
+        projectId: "elchatdealejo",
+        storageBucket: "elchatdealejo.appspot.com",
+        messagingSenderId: "651936246313",
+        appId: "1:651936246313:web:28c6562c24d38779f10a38"
+      };
+      firebase.initializeApp(config);
+      let aviso = 'aviso'
+      let off = document.getElementById('btnOut')
+      let btn = document.getElementById('btn')
+      let nombre = document.getElementById('nombre')
+      let pic = document.getElementById('pic')
+      let email = document.getElementById('email')
+      let send = document.getElementById('send')
+      let mensajes = document.getElementById('mensajes')
+      let push = document.getElementById('pushMensaje')
+      let chat = document.getElementById('chat')
+
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault()
+        loggearConGoogle()
+      })
+
+
+      off.addEventListener('click', (e)=>{
+        e.preventDefault()
+        desloguear()
+      })
+
+      push.addEventListener('click', (e)=>{
+        e.preventDefault
+        guardarMensaje()
+      })
+      
+      let usuario = {}
+
+      function loggearConGoogle(){
+        const provider = new firebase.auth.GoogleAuthProvider()
+        firebase.auth().signInWithPopup(provider).catch(error => console.log(error, message))
+      }
+      function desloguear(){
+        firebase.auth().signOut().then(function(){
+          console.log('deslogea3')
+          deslogeado()
+        }).catch(function(err){
+          console.log(err, 'errorrr')
+        })
+      
+      }
+
+      function perfilUsuario(){
+        btn.style.display='none'
+        off.style.display='block'
+        nombre.innerHTML = usuario.user.displayName
+        email.innerHTML = usuario.user.email
+        pic.src = usuario.user.photoURL
+        chat.style.display='block'
+        mostrame()
+      }
+
+      function deslogeado(){
+        btn.style.display='block'
+          off.style.display='none'
+
+        nombre.innerHTML = 'Bienvenido'
+        email.innerHTML = 'Ingresá con tu cuenta de Google para utilizar el chat de Alejo'
+        pic.src = "https://rotulosmatesanz.com/wp-content/uploads/2017/09/2000px-Google_G_Logo.svg_.png"
+        chat.style.display='none'
+        while (mensajes.hasChildNodes()) {
+          mensajes.removeChild(mensajes.firstChild);
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', ()=>{
+        firebase.auth().onAuthStateChanged(user=>{
+          if(user){
+            usuario = {'user':user}
+            console.log(usuario)
+            perfilUsuario()
+          }
+        })
+      })
+      
+      function guardarMensaje(){
+        const record = {
+          photo: usuario.user.photoURL,
+          name: usuario.user.displayName,
+          msj: send.value
+        }
+        const db = firebase.database()
+        const dbRef= db.ref('mensajes')
+        const newMensaje= dbRef.push()
+        newMensaje.set(record)
+        send.value=''
+      }
+
+      function mostrame(){
+        const db = firebase.database()
+        const dbRef = db.ref('mensajes')
+        dbRef.on('child_added', snapshot =>{
+          var item = document.createElement('li')
+          item.innerHTML=  '<strong>'+ snapshot.val().name +'</strong> :'+  snapshot.val().msj
+          mensajes.appendChild(item)
+          let items= document.querySelectorAll('li')
+          let last = items[items.length-1]
+          last.scrollIntoView()
+
+        })
+      }
+    </script>
+  </body>
+</html>
